@@ -75,6 +75,7 @@ class Map
     end
     @iteration += 1
     @bird.update
+    return @pipes[BIRD_POSITION] && @pipes[BIRD_POSITION].positions.include?(@bird.position)
   end
 
   def draw
@@ -82,9 +83,9 @@ class Map
       for column in 0..COLUMNS-1
         Curses.setpos(row, column)
         if @pipes[column] && @pipes[column].positions.include?(row)
-          Curses.addch('#') 
+          Curses.addch('|') 
         else
-          Curses.addch('~')
+          Curses.addch(' ')
         end
         if column == BIRD_POSITION
           Curses.setpos(@bird.position, column)
@@ -98,33 +99,28 @@ end
 
 class Game
   def initialize
-  end
-  
-  def char_if_pressed
-    begin
-      system("stty raw -echo") # turn raw input on
-      c = nil
-      if $stdin.ready?
-        c = $stdin.getc
-      end
-      c.chr if c
-    ensure
-      system "stty -raw echo" # turn raw input off
-    end
-  end
-
-  def run
     STDOUT.sync = true
     Curses::timeout = 25
     Curses.noecho
     Curses.init_screen
-    bird = Bird.new
-    map = Map.new(bird)
+    @bird = Bird.new
+    @map = Map.new(@bird)
+  end
+
+  def end_game
+    Curses.setpos(@bird.position, BIRD_POSITION)
+    Curses.addch('*')
+    Curses.refresh
+    sleep 1000
+  end
+
+  def run
     while true
       c = Curses.getch
-      bird.flap if c
-      map.update
-      map.draw
+      @bird.flap if c
+      collision = @map.update
+      @map.draw
+      end_game if collision
       sleep REFRESH_RATE
     end
   end
