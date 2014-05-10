@@ -1,16 +1,15 @@
 #COMMAND LINE FLAPPY BIRD
 require 'curses'
-require 'dispel'
 require 'io/wait'
 
 REFRESH_RATE = 0.1
 COLUMNS = 60
 ROWS = 20
-SPACE = 2
+SPACE = 3
 SPACE_BETWEEN_PIPES = 15
 BIRD_POSITION = 20
 GRAVITY = 0.5
-FLAP = -1
+FLAP = -1.3
 
 class Pipe
   def initialize
@@ -37,8 +36,13 @@ class Bird
     @velocity += @gravity/2
     @height += @velocity
     @velocity += @gravity/2
-    @height = 0.0 if @height < 0.0
-    @height = (ROWS - 1).to_f if @height > ROWS - 1
+    if @height < 0.0
+      @height = 0.0
+      @velocity = 0.0
+    elsif @height > ROWS - 1
+      @height = (ROWS - 1).to_f
+      @velocity = @gravity/2
+    end
   end
   
   def flap
@@ -83,7 +87,6 @@ class Map
           Curses.addch('~')
         end
         if column == BIRD_POSITION
-          #print(@bird.position)
           Curses.setpos(@bird.position, column)
           Curses.addch('@')
         end
