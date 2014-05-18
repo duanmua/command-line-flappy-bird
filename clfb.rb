@@ -2,7 +2,7 @@
 require 'curses'
 require 'io/wait'
 
-REFRESH_RATE = 0.1
+REFRESH_RATE = 0.05
 COLUMNS = 60
 ROWS = 20
 SPACE = 3
@@ -100,18 +100,34 @@ end
 class Game
   def initialize
     STDOUT.sync = true
-    Curses::timeout = 25
+    Curses::timeout = 15
     Curses.noecho
     Curses.init_screen
     @bird = Bird.new
     @map = Map.new(@bird)
   end
 
+  def reset
+    Curses::timeout = 15
+    @bird = Bird.new
+    @map = Map.new(@bird)
+    run
+  end
+  
   def end_game
     Curses.setpos(@bird.position, BIRD_POSITION)
     Curses.addch('*')
     Curses.refresh
-    sleep 1000
+    Curses.timeout = -1
+    while true
+      char = Curses.getch
+      if char == 'r'
+        reset
+      elsif char == 'q'
+        exit
+      end
+    end
+    reset
   end
 
   def run
